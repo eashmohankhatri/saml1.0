@@ -85,7 +85,37 @@ exports.getSAMLResponse = function (options, callback) {
     }
 
     if (options.attributes) {
-        var statement = doc.documentElement.getElementsByTagNameNS(NAMESPACE, 'AttributeStatement')[0];
+        var statement = doc.getElementsByTagName('saml:Assertion')[0];
+
+        // var subjectElement = doc.createElementNS(NAMESPACE, 'saml:Subject');
+        var subjectStr = `
+        <saml:Subject>
+                    <saml:NameIdentifier Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" />
+                    <saml:SubjectConfirmation>
+                        <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</saml:ConfirmationMethod>
+                    </saml:SubjectConfirmation>
+                </saml:Subject>
+        `;
+
+
+        var confirmationMethodElem = doc.createElement('saml:ConfirmationMethod');
+        confirmationMethodElem.textContent = 'urn:oasis:names:tc:SAML:1.0:cm:bearer';
+
+        var subConfirmElem = doc.createElement('saml:SubjectConfirmation');
+        subConfirmElem.appendChild(confirmationMethodElem);
+
+        var nameIdentifierElem = doc.createElement('saml:NameIdentifier');
+        nameIdentifierElem.setAttribute('Format', 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified');
+
+        var subjectElem = doc.createElement('saml:Subject');
+        subjectElem.appendChild(nameIdentifierElem);
+        subjectElem.appendChild(subConfirmElem);
+
+
+
+
+
+
         Object.keys(options.attributes).forEach(function (prop) {
             if (typeof options.attributes[prop] === 'undefined') return;
 
@@ -94,7 +124,10 @@ exports.getSAMLResponse = function (options, callback) {
             // </saml:Attribute>
             var name = prop.indexOf('/') > -1 ? prop.substring(prop.lastIndexOf('/') + 1) : prop;
             var namespace = (options.issuer) ? options.issuer : prop.indexOf('/') > -1 ? prop.substring(0, prop.lastIndexOf('/')) : '';
-            var attributeElement = doc.createElementNS(NAMESPACE, 'saml:Attribute');
+
+            var attributeStatementElement = doc.createElementNS(NAMESPACE, 'saml:AttributeStatement');
+
+            var attributeElement = doc.createElement('saml:Attribute');
             attributeElement.setAttribute('AttributeNamespace', namespace);
             attributeElement.setAttribute('AttributeName', name);
             var values = options.attributes[prop] instanceof Array ? options.attributes[prop] : [options.attributes[prop]];
@@ -104,9 +137,37 @@ exports.getSAMLResponse = function (options, callback) {
                 attributeElement.appendChild(valueElement);
             });
 
+            // var subjectElement = new Parser().parseFromString(subjectStr.toString());
+
+            var confirmationMethodElem = doc.createElement('saml:ConfirmationMethod');
+            confirmationMethodElem.textContent = 'urn:oasis:names:tc:SAML:1.0:cm:bearer';
+
+            var subConfirmElem = doc.createElement('saml:SubjectConfirmation');
+            subConfirmElem.appendChild(confirmationMethodElem);
+
+            var nameIdentifierElem = doc.createElement('saml:NameIdentifier');
+            nameIdentifierElem.setAttribute('Format', 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified');
+
+            var subjectElement = doc.createElement('saml:Subject');
+            subjectElement.appendChild(nameIdentifierElem);
+            subjectElement.appendChild(subConfirmElem);
+
+            if (options.nameIdentifier) {
+                subjectElement.getElementsByTagName(
+                    'saml:NameIdentifier')[0].textContent = options.nameIdentifier;
+
+                subjectElement.getElementsByTagName(
+                    'saml:NameIdentifier')[0].setAttribute('NameQualifier', 'urn:' + namespace);
+            }
+
+
+            attributeStatementElement.appendChild(subjectElement);
+            attributeStatementElement.appendChild(attributeElement);
+
+
             if (values && values.length > 0) {
                 // saml:Attribute must have at least one saml:AttributeValue
-                statement.appendChild(attributeElement);
+                statement.appendChild(attributeStatementElement);
             }
         });
     }
