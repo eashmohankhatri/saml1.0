@@ -57,9 +57,9 @@ exports.getSAMLResponse = function (options, callback) {
     }
 
     var now = moment.utc();
-    doc.documentElement.setAttribute('AssertionID', '_' + (options.uid || utils.uid(32)));
+    //doc.documentElement.setAttribute('AssertionID', '_' + (options.uid || utils.uid(32)));
     if (options.issuer) {
-        doc.documentElement.setAttribute('Issuer', options.issuer);
+        //doc.documentElement.setAttribute('Issuer', options.issuer);
         doc.getElementsByTagName('saml:Assertion')[0].setAttribute('Issuer', options.issuer);
         doc.getElementsByTagName('saml:Assertion')[0].setAttribute('IssueInstant', now.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'));
         doc.getElementsByTagName('saml:Assertion')[0].setAttribute('AssertionID', '_' + (options.uid || utils.uid(32)));
@@ -86,17 +86,6 @@ exports.getSAMLResponse = function (options, callback) {
 
     if (options.attributes) {
         var statement = doc.getElementsByTagName('saml:Assertion')[0];
-
-        // var subjectElement = doc.createElementNS(NAMESPACE, 'saml:Subject');
-        var subjectStr = `
-        <saml:Subject>
-                    <saml:NameIdentifier Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" />
-                    <saml:SubjectConfirmation>
-                        <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</saml:ConfirmationMethod>
-                    </saml:SubjectConfirmation>
-                </saml:Subject>
-        `;
-
 
         var confirmationMethodElem = doc.createElement('saml:ConfirmationMethod');
         confirmationMethodElem.textContent = 'urn:oasis:names:tc:SAML:1.0:cm:bearer';
