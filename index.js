@@ -37,7 +37,7 @@ exports.getSAMLResponse = function (options, callback) {
     var cert = utils.pemToCert(options.cert);
 
     var sig = new SignedXml(null, { signatureAlgorithm: algorithms.signature[options.signatureAlgorithm], idAttribute: 'AssertionID' });
-    sig.addReference("//*[local-name(.)='Assertion']",
+    sig.addReference("//*[local-name(.)='Response']",
         ["http://www.w3.org/2000/09/xmldsig#enveloped-signature", "http://www.w3.org/2001/10/xml-exc-c14n#"],
         algorithms.digest[options.digestAlgorithm]);
 
